@@ -27,7 +27,7 @@ const Home = () => {
       description: "Chasing greatness on and off the court."
     }
   ];
-  
+
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -159,12 +159,12 @@ const Home = () => {
           <div className="absolute bottom-0 left-0 w-full h-24 bg-linear-to-t from-black to-transparent pointer-events-none"></div>
         </section>
 
-        
+
         <div className="bg-black/90">
           <PlayersMarquee />
         </div>
 
-        
+
         <div className="bg-black">
           <AutoPlayVideo videoSrc="https://res.cloudinary.com/do8awe7fc/video/upload/q_auto/f_auto/v1777145434/MainVideo_rxfdje.mp4" />
         </div>

@@ -19,6 +19,7 @@ import {
   HandMetal,
   Phone,
   ArrowLeft,
+  ShieldCheck,
 } from "lucide-react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
 
@@ -102,14 +103,14 @@ const PlayerDetailsCard = () => {
       </div>
     );
 
-  const { name, facebook, position, whatsapp, img, jersey, nationality, age, height, weight, DominantHand, Birthdate, phone, instagram } = singlePlayer;
+  const { name, facebook, position, whatsapp, img, jersey, nationality, age, height, weight, DominantHand, Birthdate, phone, instagram, work } = singlePlayer;
 
   return (
     <div className="min-h-screen bg-[#020617] flex items-center justify-center p-6 relative overflow-hidden font-sans">
       <AnimatePresence>
         {showToast && (
           <motion.div initial={{ opacity: 0, y: -40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="fixed top-5 right-5 z-50">
-            <div className="px-5 py-3 rounded-2xl border border-white/20 bg-gradient-to-br from-indigo-600 to-purple-700 text-white shadow-2xl">
+            <div className="px-5 py-3 rounded-2xl border border-white/20 bg-linear-to-br from-indigo-600 to-purple-700 text-white shadow-2xl">
               📋 Number copied
             </div>
           </motion.div>
@@ -127,7 +128,7 @@ const PlayerDetailsCard = () => {
           onMouseMove={handleMouseMove}
           onMouseLeave={() => { x.set(0); y.set(0); setIsHovering(false); }}
           onMouseEnter={() => setIsHovering(true)}
-          className="relative rounded-3xl overflow-hidden border border-white/20 bg-gradient-to-tr from-white/5 to-indigo-900/10 backdrop-blur-[40px] shadow-2xl shadow-indigo-900/40 transition-transform duration-500 hover:scale-[1.03]"
+          className="relative rounded-3xl overflow-hidden border border-white/20 bg-linear-to-tr from-white/5 to-indigo-900/10 backdrop-blur-2xl shadow-2xl shadow-indigo-900/40 transition-transform duration-500 hover:scale-[1.03]"
         >
           <div className="absolute inset-0 pointer-events-none transition-opacity duration-300" style={{ opacity: isHovering ? 1 : 0, background: `radial-gradient(600px circle at ${glowPosition.x}% ${glowPosition.y}%, rgba(99,102,241,0.2), transparent 40%)` }} />
 
@@ -141,13 +142,21 @@ const PlayerDetailsCard = () => {
                 <div className="w-52 h-52 md:w-64 md:h-64 rounded-full overflow-hidden border border-purple-500 p-2 bg-black/30">
                   <img src={img} alt={name} className="w-full h-full object-cover rounded-full" />
                 </div>
-                <div className="absolute top-8 right-2 bg-gradient-to-tr from-indigo-500 to-purple-500 text-white w-14 h-14 rounded-full flex items-center justify-center text-xl font-black shadow-lg">
+                <div className="absolute top-8 right-2 bg-linear-to-tr from-indigo-500 to-purple-500 text-white w-14 h-14 rounded-full flex items-center justify-center text-xl font-black shadow-lg">
                   {jersey}
                 </div>
               </div>
               <div className="mt-8 text-center">
                 <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-white">{name}</h2>
                 <p className="text-indigo-300 uppercase text-sm mt-1">{position}</p>
+                {work && (
+                  <div className="flex justify-center items-center gap-2 mt-4 bg-white/5 px-4 py-1.5 rounded-full border border-white/10">
+                    <ShieldCheck size={16} className="text-indigo-400" />
+                    <span className="text-xs text-slate-300 font-semibold uppercase">
+                      {work}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-center items-center gap-6 mt-4 bg-white/5 px-4 py-1.5 rounded-full border border-white/10">
                   <Link to={facebook || "#"} target="_blank"><FaFacebook color="white" size={24} /></Link>
                   <Link to={instagram || "#"} target="_blank"><FaInstagram color="white" size={24} /></Link>
