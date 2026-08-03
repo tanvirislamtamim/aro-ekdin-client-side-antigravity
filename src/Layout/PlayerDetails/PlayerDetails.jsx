@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import {
@@ -20,14 +20,28 @@ import {
   Phone,
   ArrowLeft,
   ShieldCheck,
+  Heart,
+  Edit,
+  Trash2,
+  Save,
+  X,
 } from "lucide-react";
 import useAxiosSecure from "../../hooks/useAxiosSecure";
+import useAuth from "../../hooks/useAuth";
+import useUserRole from "../../hooks/useUserRole";
+import Swal from "sweetalert2";
 
 const PlayerDetailsCard = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showToast, setShowToast] = useState(false);
   const axiosSecure = useAxiosSecure();
+  const { user } = useAuth();
+  const { role } = useUserRole();
+  const [newCommentText, setNewCommentText] = useState("");
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editingCommentText, setEditingCommentText] = useState("");
 
   const {
     data: singlePlayer,
@@ -40,6 +54,155 @@ const PlayerDetailsCard = () => {
       return res.data;
     },
   });
+
+  // Favorites Query
+  const { data: favoriteData, refetch: refetchFavoriteStatus } = useQuery({
+    queryKey: ["favoriteStatus", id, user?.email],
+    queryFn: async () => {
+      if (!user?.email) return { isFavorite: false };
+      const res = await axiosSecure.get(`/favorites/${id}`);
+      return res.data;
+    },
+    enabled: !!user?.email,
+  });
+
+  const isFavorite = favoriteData?.isFavorite || false;
+
+  // Comments Query
+  const { data: comments = [], refetch: refetchComments } = useQuery({
+    queryKey: ["comments", id],
+    queryFn: async () => {
+      const res = await axiosSecure.get(`/comments/${id}`);
+      return res.data;
+    },
+  });
+
+  const handleFavoriteToggle = async () => {
+    if (!user) return;
+    try {
+      if (isFavorite) {
+        await axiosSecure.delete(`/favorites/${id}`);
+      } else {
+        await axiosSecure.post("/favorites", { playerId: id });
+      }
+      refetchFavoriteStatus();
+    } catch (err) {
+      console.error("Error toggling favorite:", err);
+    }
+  };
+
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    if (!user || !newCommentText.trim()) return;
+    try {
+      await axiosSecure.post("/comments", {
+        playerId: id,
+        comment: newCommentText.trim(),
+        name: user.displayName || user.email.split("@")[0],
+        photo: user.photoURL,
+      });
+      setNewCommentText("");
+      refetchComments();
+      Swal.fire({
+        icon: "success",
+        title: "Comment added!",
+        showConfirmButton: false,
+        timer: 1500,
+        background: "#0f172a",
+        color: "#fff",
+      });
+    } catch (err) {
+      console.error("Error posting comment:", err);
+    }
+  };
+
+  const handleCommentDelete = async (commentId) => {
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#6366f1",
+      cancelButtonColor: "#ef4444",
+      confirmButtonText: "Yes, delete it!",
+      background: "#0f172a",
+      color: "#fff",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await axiosSecure.delete(`/comments/${commentId}`);
+          refetchComments();
+          Swal.fire({
+            title: "Deleted!",
+            text: "Your comment has been deleted.",
+            icon: "success",
+            background: "#0f172a",
+            color: "#fff",
+          });
+        } catch (err) {
+          console.error("Error deleting comment:", err);
+        }
+      }
+    });
+  };
+
+  const handleCommentEditSave = async (commentId) => {
+    if (!editingCommentText.trim()) return;
+    try {
+      await axiosSecure.patch(`/comments/${commentId}`, {
+        comment: editingCommentText.trim(),
+      });
+      setEditingCommentId(null);
+      setEditingCommentText("");
+      refetchComments();
+      Swal.fire({
+        icon: "success",
+        title: "Comment updated!",
+        showConfirmButton: false,
+        timer: 1500,
+        background: "#0f172a",
+        color: "#fff",
+      });
+    } catch (err) {
+      console.error("Error editing comment:", err);
+    }
+  };
+
+  const handleCommentEditSwal = async (c) => {
+    const { value: text } = await Swal.fire({
+      title: 'Edit Comment',
+      input: 'textarea',
+      inputLabel: 'Update your comment',
+      inputValue: c.comment,
+      showCancelButton: true,
+      background: "#0f172a",
+      color: "#fff",
+      confirmButtonColor: "#6366f1",
+      cancelButtonColor: "#ef4444",
+      inputValidator: (value) => {
+        if (!value) {
+          return 'You need to write something!'
+        }
+      }
+    });
+
+    if (text) {
+      try {
+        await axiosSecure.patch(`/comments/${c._id}`, { comment: text.trim() });
+        refetchComments();
+        Swal.fire({
+          icon: "success",
+          title: "Comment updated!",
+          showConfirmButton: false,
+          timer: 1500,
+          background: "#0f172a",
+          color: "#fff",
+        });
+      } catch (err) {
+        console.error("Error editing comment:", err);
+      }
+    }
+  };
 
   // 3D Animation Logic
   const x = useMotionValue(0);
@@ -106,7 +269,7 @@ const PlayerDetailsCard = () => {
   const { name, facebook, position, whatsapp, img, jersey, nationality, age, height, weight, DominantHand, Birthdate, phone, instagram, work } = singlePlayer;
 
   return (
-    <div className="min-h-screen bg-[#020617] flex items-center justify-center p-6 relative overflow-hidden font-sans">
+    <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-start py-16 px-6 gap-8 relative overflow-hidden font-sans">
       <AnimatePresence>
         {showToast && (
           <motion.div initial={{ opacity: 0, y: -40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="fixed top-5 right-5 z-50">
@@ -132,9 +295,19 @@ const PlayerDetailsCard = () => {
         >
           <div className="absolute inset-0 pointer-events-none transition-opacity duration-300" style={{ opacity: isHovering ? 1 : 0, background: `radial-gradient(600px circle at ${glowPosition.x}% ${glowPosition.y}%, rgba(99,102,241,0.2), transparent 40%)` }} />
 
-          <button onClick={() => navigate(-1)} className="absolute top-5 left-5 z-20 flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full pl-3 pr-4 py-2 border border-white/20 hover:bg-white/20">
+          <button onClick={() => navigate(-1)} className="absolute top-5 left-5 z-20 flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full pl-3 pr-4 py-2 border border-white/20 hover:bg-white/20 text-white">
             <ArrowLeft size={18} className="text-indigo-300" /> Back
           </button>
+
+          {user && (
+            <button 
+              onClick={handleFavoriteToggle} 
+              className="absolute top-5 right-5 z-20 flex items-center gap-2 bg-white/10 backdrop-blur-md rounded-full px-4 py-2 border border-white/20 hover:bg-white/20 transition-all duration-300 active:scale-95 text-white"
+            >
+              <Heart size={18} className={isFavorite ? "text-red-500 fill-red-500" : "text-indigo-300"} />
+              <span className="font-semibold text-sm">{isFavorite ? "Favorited" : "Favorite"}</span>
+            </button>
+          )}
 
           <div className="flex flex-col md:flex-row">
             <div className="w-full md:w-2/5 p-8 flex flex-col items-center justify-center border-r border-white/10">
@@ -189,7 +362,134 @@ const PlayerDetailsCard = () => {
           </div>
         </motion.div>
       </motion.div>
-    </div>
+
+      {/* 💬 Comments Section */}
+      <div className="w-full max-w-5xl z-10 space-y-8 mt-4">
+        {/* Style block for Marquee & Animations */}
+        <style>{`
+          @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .animate-marquee {
+            display: flex;
+            animation: marquee 25s linear infinite;
+            width: max-content;
+          }
+          .animate-marquee:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
+
+        {/* 1. Live Comments Marquee */}
+        {comments.length > 0 && (
+          <div className="relative w-full overflow-hidden bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-2xl shadow-xl">
+            <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-cyan-400 mb-6 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+              Comments
+            </h4>
+            <div className="relative w-full overflow-hidden flex">
+              <div className="animate-marquee gap-6">
+                {(() => {
+                  let repeated = [...comments];
+                  while (repeated.length < 8 && comments.length > 0) {
+                    repeated = [...repeated, ...comments];
+                  }
+                  return [...repeated, ...repeated].map((c, idx) => {
+                    const isOwner = user && user.email === c.email;
+                    const isAdmin = role === "admin" || role === "developer";
+                    const canEditOrDelete = isOwner || isAdmin;
+
+                    return (
+                      <div key={idx} className="flex-shrink-0 flex items-center justify-between gap-3 bg-black/40 border border-white/5 px-4 py-3 rounded-2xl min-w-[280px]">
+                        <div className="flex items-center gap-3">
+                          <img 
+                            src={c.photo || "https://i.ibb.co/m096m9m/user.png"} 
+                            alt={c.name} 
+                            className="w-10 h-10 rounded-full ring-2 ring-cyan-300 object-cover" 
+                          />
+                          <div className="overflow-hidden">
+                            <p className="text-xs font-bold text-white truncate">{c.name}</p>
+                            <p className="text-sm text-gray-300 truncate max-w-[150px]">{c.comment}</p>
+                          </div>
+                        </div>
+
+                        {canEditOrDelete && (
+                          <div className="flex items-center gap-1.5 pl-2 border-l border-white/10">
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCommentEditSwal(c);
+                              }} 
+                              className="p-1 rounded bg-white/5 hover:bg-indigo-500/30 text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+                              title="Edit"
+                            >
+                              <Edit size={12} />
+                            </button>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCommentDelete(c._id);
+                              }} 
+                              className="p-1 rounded bg-white/5 hover:bg-red-500/30 text-red-400 hover:text-red-300 transition-colors cursor-pointer"
+                              title="Delete"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Grid for Comment Form and Comment List */}
+        
+          {/* Left Side: Add Comment Form */}
+          <div className="space-y-4">
+            {user ? (
+              <form onSubmit={handleCommentSubmit} className="bg-white/5 border border-white/10 rounded-3xl p-6 backdrop-blur-2xl shadow-xl space-y-4">
+                <h4 className="text-lg font-bold text-indigo-300 flex items-center gap-2">
+                  Share Your Thoughts
+                </h4>
+                <div className="flex gap-4">
+                  <img 
+                    src={user?.photoURL || "https://i.ibb.co/m096m9m/user.png"} 
+                    alt={user?.displayName} 
+                    className="w-12 h-12 rounded-full object-cover ring-2 ring-indigo-400" 
+                  />
+                  <div className="grow space-y-4">
+                    <textarea
+                      value={newCommentText}
+                      onChange={(e) => setNewCommentText(e.target.value)}
+                      placeholder="Write a public comment..."
+                      rows="3"
+                      className="w-full bg-black/40 border border-white/10 focus:border-indigo-400 rounded-2xl px-4 py-3 text-white outline-none placeholder-gray-500 resize-none transition-all duration-300 focus:ring-1 focus:ring-indigo-400"
+                      required
+                    />
+                    <button 
+                      type="submit" 
+                      className="w-full md:w-auto px-6 py-3 bg-linear-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold rounded-2xl shadow-lg transition-all duration-300 transform hover:-translate-y-0.5 active:translate-y-0"
+                    >
+                      Post Comment
+                    </button>
+                  </div>
+                </div>
+              </form>
+            ) : (
+              <div className="bg-white/5 border border-white/10 rounded-3xl p-8 text-center text-gray-400 backdrop-blur-2xl shadow-xl">
+                Please <Link to="/login" state={{ from: location }} className="text-cyan-400 hover:underline font-bold">login</Link> to join the discussion and post comments.
+              </div>
+            )}
+          </div>
+
+        </div>
+      </div>
+    
   );
 };
 

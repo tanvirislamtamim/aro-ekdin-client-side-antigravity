@@ -24,14 +24,7 @@ const Rules = () => {
       desc: "সার্ভ লাইন স্পর্শ করা নিষেধ। নেট টাচ করা বা নেট পার হয়ে অন্য কোর্টে যাওয়া ফাউল হিসেবে গণ্য হয়।",
     },
   ];
-  const handleDownload = () => {
-    const link = document.createElement("a");
-    link.href = pdfUrl;
-    link.setAttribute("download", "FIVB_Volleyball_Rules_2025-2028.pdf");
-    document.body.appendChild(link);
-    link.click();
-    link.parentNode.removeChild(link);
-  };
+
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-[#0a0a0a] rounded-3xl border border-white/10 shadow-2xl">
@@ -92,12 +85,15 @@ const Rules = () => {
         <h3 className="text-white font-semibold mb-2">
           পূর্ণাঙ্গ নিয়মাবলী ডাউনলোড করুন
         </h3>
-        <button
-          onClick={handleDownload}
+        <a
+          href={pdfUrl}
+          download="FIVB_Volleyball_Rules_2025-2028.pdf"
+          target="_blank"
+          rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-blue-400 via-cyan-300 to-indigo-400 text-black font-bold rounded-xl hover:opacity-90 transition-all shadow-lg hover:shadow-cyan-500/20"
         >
           <FaFilePdf /> Download PDF
-        </button>
+        </a>
       </div>
     </div>
   );

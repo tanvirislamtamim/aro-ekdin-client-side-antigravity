@@ -2,6 +2,8 @@ import React from "react";
 import { Outlet, NavLink, Link, } from "react-router-dom";
 import {
   FaThLarge,
+  FaThList,
+  FaHeart,
   FaCog,
   FaLock,
   FaQuestionCircle,
@@ -32,6 +34,7 @@ const DashBoardLayout = () => {
       items: [
         { name: "Home", path: "/", icon: <FaHome /> },
         { name: "Rules", path: "/dashboard/rules", icon: <FaBook /> },
+        { name: "Favorite Players", path: "/dashboard/favorites", icon: <FaHeart /> },
         // ✅ ADMIN ONLY ROUTES
         ...(!roleLoading && (role === "admin"|| role === "developer")
           ? [

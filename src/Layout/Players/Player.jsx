@@ -1,8 +1,31 @@
 import React, { useState } from "react";
 import { Link } from "react-router";
+import { FaHeart } from "react-icons/fa";
+import useAuth from "../../hooks/useAuth";
+import useAxiosSecure from "../../hooks/useAxiosSecure";
 
-const Player = ({ player, index }) => {
+const Player = ({ player, index, isFavorite, refetchFavorites }) => {
   const [imgLoaded, setImgLoaded] = useState(false);
+  const { user } = useAuth();
+  const axiosSecure = useAxiosSecure();
+
+  const handleFavoriteToggle = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) return;
+    try {
+      if (isFavorite) {
+        await axiosSecure.delete(`/favorites/${player._id}`);
+      } else {
+        await axiosSecure.post('/favorites', { playerId: player._id });
+      }
+      if (refetchFavorites) {
+        refetchFavorites();
+      }
+    } catch (err) {
+      console.error("Error toggling favorite:", err);
+    }
+  };
 
   // 🔥 Skeleton Loader (when no player)
   if (!player) {
@@ -96,6 +119,22 @@ const Player = ({ player, index }) => {
         className="modern-3d-card animate-card relative w-full max-w-[320px] min-h-80 rounded-2xl overflow-hidden shadow-2xl p-6 flex flex-col items-center text-center justify-between"
         style={{ animationDelay: `${index * 0.15}s` }}
       >
+        {/* Favorite Button */}
+        {user && (
+          <button 
+            onClick={handleFavoriteToggle} 
+            className="absolute top-4 right-4 z-20 p-2.5 rounded-full bg-black/45 hover:bg-black/65 border border-white/10 hover:border-purple-400/50 hover:scale-110 active:scale-95 transition-all duration-300 shadow-md group"
+          >
+            <FaHeart 
+              className={`transition-colors duration-300 ${
+                isFavorite 
+                  ? "text-red-500 fill-red-500 drop-shadow-[0_0_6px_rgba(239,68,68,0.6)]" 
+                  : "text-gray-400 group-hover:text-red-400"
+              }`} 
+              size={18} 
+            />
+          </button>
+        )}
         
         <div className="w-full flex flex-col items-center">
           

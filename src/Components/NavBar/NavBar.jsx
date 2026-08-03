@@ -1,4 +1,4 @@
-import { Link, NavLink } from "react-router";
+import { Link, NavLink, useLocation } from "react-router";
 import { useState, useRef, useEffect, useContext } from "react";
 import { AuthContext } from "../../Context/AuthContext/AuthContext";
 import "./NavBar.css";
@@ -6,6 +6,7 @@ import "./NavBar.css";
 // import { AuthContext } from "../../providers/AuthProvider";
 
 const Navbar = () => {
+  const location = useLocation();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const dropdownRef = useRef(null);
@@ -217,6 +218,7 @@ const Navbar = () => {
                 <>
                   <NavLink
                     to="/login"
+                    state={{ from: location }}
                     onClick={() => setIsDropdownOpen(false)}
                     className={({ isActive }) =>
                       `flex items-center gap-3 px-4 py-3 text-sm transition-all duration-300 ${

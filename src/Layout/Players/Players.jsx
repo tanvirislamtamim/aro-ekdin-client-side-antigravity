@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import Player from './Player';
 import { useQuery } from '@tanstack/react-query';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
+import useAuth from '../../hooks/useAuth';
 
 const Players = () => {
     const [selectedPosition, setSelectedPosition] = useState("All");
     const [searchText, setSearchText] = useState("");
     const axiosSecure = useAxiosSecure();
+    const { user } = useAuth();
 
     // 🔥 Fix: URL `/players/:id` পরিবর্তন করে `/players` করা হয়েছে
     const { data: players = [], isLoading, isError } = useQuery({
@@ -15,6 +17,16 @@ const Players = () => {
             const res = await axiosSecure.get('/players'); 
             return res.data;
         }
+    });
+
+    const { data: favorites = [], refetch: refetchFavorites } = useQuery({
+        queryKey: ['favorites', user?.email],
+        queryFn: async () => {
+            if (!user?.email) return [];
+            const res = await axiosSecure.get('/favorites');
+            return res.data;
+        },
+        enabled: !!user?.email
     });
 
     // 🔥 Filter + Search Logic
@@ -86,7 +98,12 @@ const Players = () => {
                                 className="animate-card-load w-full flex justify-center"
                                 style={{ animationDelay: `${index * 0.1}s` }}
                             >
-                                <Player player={player} index={index} />
+                                <Player 
+                                  player={player} 
+                                  index={index} 
+                                  isFavorite={favorites.some(fav => fav._id === player._id)}
+                                  refetchFavorites={refetchFavorites}
+                                />
                             </div>
                         ))
                     }

@@ -28,6 +28,7 @@ import Photos from "./Layout/Dashboard/Photos";
 import AdminRoute from "./Routes/AdminRoute";
 import DeveloperRoute from "./Routes/DeveloperRoute";
 import Videos from "./Layout/Videos/Videos";
+import FavoritePlayers from "./Layout/Dashboard/FavoritePlayers";
 
 const router = createBrowserRouter([
   {
@@ -94,6 +95,10 @@ const router = createBrowserRouter([
       {
         path: "updatePlayer",
         element: <AdminRoute><UpdatePlayer></UpdatePlayer></AdminRoute>
+      },
+      {
+        path: "favorites",
+        element: <FavoritePlayers />
       }
     ],
   },
