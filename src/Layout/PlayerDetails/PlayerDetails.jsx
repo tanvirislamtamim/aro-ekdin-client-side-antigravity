@@ -309,10 +309,10 @@ const PlayerDetailsCard = () => {
             </button>
           )}
 
-          <div className="flex flex-col md:flex-row">
+          <div className="flex flex-col md:flex-row mt-12 md:mt-0">
             <div className="w-full md:w-2/5 p-8 flex flex-col items-center justify-center border-r border-white/10">
               <div className="relative">
-                <div className="w-52 h-52 md:w-64 md:h-64 rounded-full overflow-hidden border border-purple-500 p-2 bg-black/30">
+                <div className="w-52 h-52 md:w-64 md:h-64   rounded-full overflow-hidden border border-purple-500 p-2 bg-black/30">
                   <img src={img} alt={name} className="w-full h-full object-cover rounded-full" />
                 </div>
                 <div className="absolute top-8 right-2 bg-linear-to-tr from-indigo-500 to-purple-500 text-white w-14 h-14 rounded-full flex items-center justify-center text-xl font-black shadow-lg">
@@ -320,7 +320,7 @@ const PlayerDetailsCard = () => {
                 </div>
               </div>
               <div className="mt-8 text-center">
-                <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-white">{name}</h2>
+                <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-linear-to-r from-indigo-400 to-white">{name}</h2>
                 <p className="text-indigo-300 uppercase text-sm mt-1">{position}</p>
                 {work && (
                   <div className="flex justify-center items-center gap-2 mt-4 bg-white/5 px-4 py-1.5 rounded-full border border-white/10">
@@ -401,7 +401,7 @@ const PlayerDetailsCard = () => {
                     const canEditOrDelete = isOwner || isAdmin;
 
                     return (
-                      <div key={idx} className="flex-shrink-0 flex items-center justify-between gap-3 bg-black/40 border border-white/5 px-4 py-3 rounded-2xl min-w-[280px]">
+                      <div key={idx} className="shrink-0 flex items-center justify-between gap-3 bg-black/40 border border-white/5 px-4 py-3 rounded-2xl min-w-[280px]">
                         <div className="flex items-center gap-3">
                           <img 
                             src={c.photo || "https://i.ibb.co/m096m9m/user.png"} 
@@ -410,7 +410,7 @@ const PlayerDetailsCard = () => {
                           />
                           <div className="overflow-hidden">
                             <p className="text-xs font-bold text-white truncate">{c.name}</p>
-                            <p className="text-sm text-gray-300 truncate max-w-[150px]">{c.comment}</p>
+                            <p className="text-sm text-gray-300 truncate max-w-37.5">{c.comment}</p>
                           </div>
                         </div>
 
